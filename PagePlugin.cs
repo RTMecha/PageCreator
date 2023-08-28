@@ -14,15 +14,21 @@ using DG.Tweening;
 using LSFunctions;
 
 using RTFunctions.Functions;
+using RTFunctions.Functions.IO;
+using RTFunctions.Functions.Managers;
 
 using PageCreator.Functions;
 using PageCreator.Patchers;
 
 namespace PageCreator
 {
-    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "1.0.2")]
+    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.0")]
     public class PagePlugin : BaseUnityPlugin
     {
+        // Updates:
+        //-Added PageCreator
+        //-
+
         public static PagePlugin inst;
         public static string className = "[<color=#0E36FD>PageCreator</color>] " + PluginInfo.PLUGIN_VERSION + "\n";
         readonly Harmony harmony = new Harmony("Pages");
@@ -41,6 +47,8 @@ namespace PageCreator
         public static ConfigEntry<LoadMode> MusicLoadMode { get; set; }
         public static ConfigEntry<int> MusicIndex { get; set; }
 
+        public static ConfigEntry<string> MusicGlobalPath { get; set; }
+
         public static ConfigEntry<KeyCode> ReloadMainMenu { get; set; }
 
         public static string prevBranch;
@@ -51,7 +59,8 @@ namespace PageCreator
         {
             Settings,
             StoryFolder,
-            EditorFolder
+            EditorFolder,
+            GlobalFolder
         }
 
         public static bool prevPlayCustomMusic;
@@ -68,6 +77,8 @@ namespace PageCreator
             PlayCustomMusic = Config.Bind("Music", "Play Custom Music", true, "Allows you to load any number of songs from settings/menus.");
             MusicLoadMode = Config.Bind("Music", "Load Directory", LoadMode.Settings, "Where the music loads from. Settings path: Project Arrhythmia/settings/menus.");
             MusicIndex = Config.Bind("Music", "File Index", -1, "If number is less than 0 or higher than the song file count, it will play a random song. Otherwise it will use the specified index.");
+            MusicGlobalPath = Config.Bind("Music", "Global Path", "C:/", "Set this path to whatever path you want if you're using Global Load Directory.");
+
             ReloadMainMenu = Config.Bind("Menu", "Reload Main Menu key", KeyCode.F5, "The key to reload the main menu for easy reloading of modified menu file.");
 
             prevPlayCustomMusic = PlayCustomMusic.Value;
@@ -107,36 +118,38 @@ namespace PageCreator
 
         public static void PlayMusic(InterfaceController __instance)
         {
-            var directory = "settings/menus/";
+            var directory = RTFile.ApplicationDirectory + "settings/menus/";
             switch (MusicLoadMode.Value)
             {
                 case LoadMode.StoryFolder:
                     {
-                        directory = "beatmaps/story";
+                        directory = RTFile.ApplicationDirectory + "beatmaps/story";
                         break;
                     }
                 case LoadMode.EditorFolder:
                     {
-                        directory = "beatmaps/editor";
+                        directory = RTFile.ApplicationDirectory + "beatmaps/editor";
+                        break;
+                    }
+                case LoadMode.GlobalFolder:
+                    {
+                        directory = MusicGlobalPath.Value;
                         break;
                     }
             }
 
-            if (PlayCustomMusic.Value && RTFile.DirectoryExists(RTFile.ApplicationDirectory + directory))
+            if (PlayCustomMusic.Value && RTFile.DirectoryExists(directory))
             {
                 string oggSearchPattern = "*.ogg";
-                if (MusicLoadMode.Value == LoadMode.StoryFolder || MusicLoadMode.Value == LoadMode.EditorFolder)
-                {
-                    oggSearchPattern = "level.ogg";
-                }
                 string wavSearchPattern = "*.wav";
                 if (MusicLoadMode.Value == LoadMode.StoryFolder || MusicLoadMode.Value == LoadMode.EditorFolder)
                 {
+                    oggSearchPattern = "level.ogg";
                     wavSearchPattern = "level.wav";
                 }
 
-                var oggFiles = Directory.GetFiles(RTFile.ApplicationDirectory + directory, oggSearchPattern, SearchOption.AllDirectories);
-                var wavFiles = Directory.GetFiles(RTFile.ApplicationDirectory + directory, wavSearchPattern, SearchOption.AllDirectories);
+                var oggFiles = Directory.GetFiles(directory, oggSearchPattern, SearchOption.AllDirectories);
+                var wavFiles = Directory.GetFiles(directory, wavSearchPattern, SearchOption.AllDirectories);
 
                 var songFiles = new string[oggFiles.Length + wavFiles.Length];
 
@@ -151,10 +164,16 @@ namespace PageCreator
 
                 if (songFiles.Length > 0)
                 {
-                    randomIndex = MusicIndex.Value;
+                    songs = songFiles;
+
+                    if (MusicIndex.Value >= 0 && MusicIndex.Value < songFiles.Length)
+                    {
+                        randomIndex = MusicIndex.Value;
+                    }
+
                     if (MusicIndex.Value < 0 || MusicIndex.Value > songFiles.Length - 1)
                     {
-                        if (randomIndex == -1 || randomIndex >= songFiles.Length)
+                        if (randomIndex < 0 || randomIndex >= songFiles.Length)
                             randomIndex = UnityEngine.Random.Range(0, songFiles.Length - 1);
                     }
 
@@ -181,6 +200,8 @@ namespace PageCreator
                 PlayDefaultMusic(__instance);
             }
         }
+
+        public static string[] songs;
 
         public static void PlayDefaultMusic(InterfaceController __instance)
         {
@@ -360,7 +381,7 @@ namespace PageCreator
         [HarmonyPrefix]
         private static bool InterfaceLoaderPrefix(InterfaceLoader __instance)
         {
-            string text;
+            string text = "";
             if (string.IsNullOrEmpty(__instance.file))
             {
                 text = SaveManager.inst.CurrentStoryLevel.BeatmapJson.text;
@@ -377,22 +398,30 @@ namespace PageCreator
                     text = new SerializerBuilder().JsonCompatible().Build().Serialize(graph);
                     LSText.CopyToClipboard(text);
                 }
-                else if (__instance.gameObject.scene.name == "Main Menu" && RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm"))
+                else if (__instance.gameObject.scene.name == "Main Menu" && (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm") || RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm")))
                 {
-                    text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm");
+                    if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm"))
+                        text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm");
+                    else if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm"))
+                        text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm");
                 }
-                else if (__instance.gameObject.scene.name == "Game" && RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm"))
+                else if (__instance.gameObject.scene.name == "Game" && (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm") || RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm")))
                 {
-                    text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm");
+                    if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm"))
+                        text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm");
+                    else if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm"))
+                        text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm");
                 }
                 else
                 {
                     text = (Resources.Load("terminal/" + __instance.location + "/" + __instance.file) as TextAsset).text;
                 }
+
                 DiscordController.inst.OnDetailsChange("In Menu");
                 DiscordController.inst.OnStateChange("");
                 DiscordController.inst.OnIconChange("");
             }
+
             __instance.terminal.GetComponent<InterfaceController>().ParseLilScript(text);
             InputDataManager.inst.playersCanJoin = __instance.playersCanJoin;
             return false;
