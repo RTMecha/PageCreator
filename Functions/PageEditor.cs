@@ -231,6 +231,7 @@ namespace PageCreator.Functions
 
 				var content = new GameObject("content");
 				content.transform.SetParent(((GameObject)mask["GameObject"]).transform);
+				content.transform.localScale = Vector3.one;
 				content.layer = 5;
 				var contentRT = content.AddComponent<RectTransform>();
 				UIManager.SetRectTransform(contentRT, new Vector2(0f, 32f), Vector2.up, Vector2.up, Vector2.up, new Vector2(1000f, 4276f));
@@ -259,6 +260,7 @@ namespace PageCreator.Functions
 
 				var slidingArea = new GameObject("Sliding Area");
 				slidingArea.transform.SetParent(((GameObject)scrollbar["GameObject"]).transform);
+				slidingArea.transform.localScale = Vector3.one;
 				UIManager.SetRectTransform(slidingArea.AddComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, zeroFive, new Vector2(-20f, -20f));
 
 				var handle = UIManager.GenerateUIImage("Handle", slidingArea.transform);
@@ -391,8 +393,6 @@ namespace PageCreator.Functions
 							expandedBranches.Add(inter.filePath + " - alpha", false);
 
 						StartCoroutine(Save(inter));
-
-						StartCoroutine(RefreshInterface());
 					}
 					if (editMode == EditMode.QuickElement)
                     {
@@ -405,7 +405,9 @@ namespace PageCreator.Functions
                         }
 
 						QuickElementManager.CreateNewQuickElement(s);
-                    }
+					}
+
+					StartCoroutine(RefreshInterface());
 				});
 
 				playButtButt.colors = UIManager.SetColorBlock(playButtButt.colors, new Color(0.3f, 0.1f, 0.4f), new Color(0.4f, 0.2f, 0.5f), new Color(0.3f, 01f, 0.4f), new Color(0.3f, 0.1f, 0.4f), Color.red);
@@ -415,6 +417,7 @@ namespace PageCreator.Functions
             {
 				var backer = UIManager.GenerateUIImage("editor", inter.transform);
 				var backerObject = (GameObject)backer["GameObject"];
+				backerObject.transform.localScale = Vector3.one;
 
 				UIManager.SetRectTransform((RectTransform)backer["RectTransform"], new Vector2(300f, 0f), zeroFive, zeroFive, zeroFive, new Vector2(1300f, 1000f));
 				((Image)backer["Image"]).color = new Color(0.1f, 0.1f, 0.1f, 1f);
@@ -1778,6 +1781,44 @@ namespace PageCreator.Functions
 							currentQuickElementSelection = qe;
 							Select(SelectionType.QuickElement);
 						});
+
+
+						// Delete
+						{
+							var editButton = UIManager.GenerateUIButton("delete", baseButtonObject.transform);
+							var editButtonObject = (GameObject)editButton["GameObject"];
+							editButtonObject.transform.localScale = Vector3.one;
+
+							((Image)editButton["Image"]).color = new Color(0.934f, 0.4196f, 0.5321f, 1f);
+
+							UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(-10f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+							var editButtonFunc = (Button)editButton["Button"];
+							editButtonFunc.onClick.AddListener(delegate ()
+							{
+								string current = currentQuickElementSelection.name;
+
+								QuickElementManager.customQuickElements.Remove(name);
+								StartCoroutine(RefreshInterface());
+
+								if (current == name)
+									Select(SelectionType.QuickElement);
+							});
+							//editButtonFunc.colors = UIManager.SetColorBlock(editButtonFunc.colors, new Color(0.2f, 0.2f, 0.2f), new Color(0.4008f, 0.4008f, 0.4008f), new Color(0.4608f, 0.4608f, 0.4608f), new Color(0.2f, 0.2f, 0.2f), new Color(0.4f, 0.2f, 0.2f));
+
+							var img = UIManager.GenerateUIImage("image", editButtonObject.transform);
+							var imgObject = (GameObject)img["GameObject"];
+							imgObject.transform.localScale = Vector3.one;
+
+							((Image)img["Image"]).color = offWhite;
+
+							UIManager.SetRectTransform((RectTransform)img["RectTransform"], Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+							var image = (Image)img["Image"];
+							if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
+								UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
+						}
+
 					}
 					else
 						baseButtonFunc.interactable = false;
