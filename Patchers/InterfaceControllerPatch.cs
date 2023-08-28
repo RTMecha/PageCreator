@@ -19,6 +19,7 @@ using DG.Tweening;
 using SimpleJSON;
 
 using RTFunctions.Functions;
+using RTFunctions.Functions.IO;
 using RTFunctions.Functions.Managers;
 
 using PageCreator.Functions;
@@ -38,18 +39,18 @@ namespace PageCreator.Patchers
     {
 		[HarmonyPatch("Start")]
 		[HarmonyPrefix]
-		private static bool StartPrefix(InterfaceController __instance)
+		static bool StartPrefix(InterfaceController __instance)
 		{
 			if (EditorManager.inst != null)
 				__instance.gameObject.SetActive(false);
 
-			if (Resources.LoadAll<QuickElement>("terminal/quick-elements") != null)
-			{
-				foreach (QuickElement quickElement in Resources.LoadAll<QuickElement>("terminal/quick-elements"))
-				{
-					__instance.quickElements.Add(quickElement.name, quickElement);
-				}
-			}
+			//if (Resources.LoadAll<QuickElement>("terminal/quick-elements") != null)
+			//{
+			//	foreach (QuickElement quickElement in Resources.LoadAll<QuickElement>("terminal/quick-elements"))
+			//	{
+			//		__instance.quickElements.Add(quickElement.name, quickElement);
+			//	}
+			//}
 
 			foreach (var quickElement in QuickElementManager.AllQuickElements)
             {
@@ -85,7 +86,7 @@ namespace PageCreator.Patchers
 			//GameObject.Find("EventSystem").AddComponent<StandaloneInputModule>();
 
 			var menuEffects = new GameObject("MenuEffects");
-			menuEffects.layer = 8;
+			menuEffects.layer = 5;
 			menuEffects.AddComponent<MenuEffects>();
 
 			return false;
@@ -93,7 +94,7 @@ namespace PageCreator.Patchers
 
 		[HarmonyPatch("LoadInterface", new Type[] { typeof(string) })]
 		[HarmonyPrefix]
-		private static bool LoadInterfacePrefix(InterfaceController __instance, string _filename)
+		static bool LoadInterfacePrefix(InterfaceController __instance, string _filename)
 		{
 			LoadInterface(__instance, _filename);
 			return false;
@@ -101,7 +102,7 @@ namespace PageCreator.Patchers
 
 		[HarmonyPatch("Update")]
 		[HarmonyPrefix]
-		private static bool UpdatePrefix(InterfaceController __instance, ref GameObject ___lastSelectedObj)
+		static bool UpdatePrefix(InterfaceController __instance, ref GameObject ___lastSelectedObj)
 		{
 			if (InputDataManager.inst.menuActions.Cancel.WasPressed && __instance.screenDone && __instance.currentBranch != "main_menu" && __instance.interfaceBranches[__instance.CurrentBranchIndex].type == BranchType.Menu)
 			{
@@ -469,7 +470,7 @@ namespace PageCreator.Patchers
 
 		[HarmonyPatch("handleEvent")]
 		[HarmonyPrefix]
-		private static bool handleEventPrefix(InterfaceController __instance, ref IEnumerator __result, ref string __0, string __1, bool __2 = false)
+		static bool handleEventPrefix(InterfaceController __instance, ref IEnumerator __result, ref string __0, string __1, bool __2 = false)
         {
 			__result = handleEvent(__instance, __0, __1, __2);
 			return false;
@@ -909,7 +910,6 @@ namespace PageCreator.Patchers
 					}
 				case "pageeditor":
                     {
-						Debug.LogFormat("{0}Coming soon!", PagePlugin.className);
 						PageEditor.Init();
 						break;
                     }
@@ -919,7 +919,7 @@ namespace PageCreator.Patchers
 
 		[HarmonyPatch("AddElement")]
         [HarmonyPrefix]
-        private static bool AddElementPrefix(InterfaceController __instance, ref IEnumerator __result, Element __0, bool __1)
+        static bool AddElementPrefix(InterfaceController __instance, ref IEnumerator __result, Element __0, bool __1)
         {
 			__result = AddElement(__instance, __0, __1);
 			return false;
@@ -1446,7 +1446,7 @@ namespace PageCreator.Patchers
 
 		[HarmonyPatch("ParseLilScript")]
 		[HarmonyPrefix]
-		private static bool ParseLilScriptPrefix(InterfaceController __instance, string __0)
+		static bool ParseLilScriptPrefix(InterfaceController __instance, string __0)
 		{
 			ParseLilScript(__instance, __0);
 			return false;
