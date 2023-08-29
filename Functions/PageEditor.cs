@@ -1818,7 +1818,6 @@ namespace PageCreator.Functions
 							if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
 								UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
 						}
-
 					}
 					else
 						baseButtonFunc.interactable = false;
@@ -2044,6 +2043,47 @@ namespace PageCreator.Functions
 											currentElementSelection.data[iTmp] = _val;
 										}
 									});
+
+									// Delete
+									{
+										var editButton = UIManager.GenerateUIButton("delete", times.transform);
+										var editButtonObject = (GameObject)editButton["GameObject"];
+										editButtonObject.transform.localScale = Vector3.one;
+
+										var lay = editButtonObject.AddComponent<LayoutElement>();
+										lay.preferredWidth = 32f;
+										lay.ignoreLayout = true;
+
+										((Image)editButton["Image"]).color = new Color(0.934f, 0.4196f, 0.5321f, 1f);
+
+										UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(190f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var editButtonFunc = (Button)editButton["Button"];
+										editButtonFunc.onClick.AddListener(delegate ()
+										{
+											if (!loadingEditor && currentElementSelection != null)
+											{
+												Debug.LogFormat("{0}Deleting Interface Branch Element {1}", PagePlugin.className, currentElementSelection.data[iTmp]);
+
+												currentElementSelection.data.RemoveAt(iTmp);
+
+												Select(selectionType);
+											}
+										});
+										//editButtonFunc.colors = UIManager.SetColorBlock(editButtonFunc.colors, new Color(0.2f, 0.2f, 0.2f), new Color(0.4008f, 0.4008f, 0.4008f), new Color(0.4608f, 0.4608f, 0.4608f), new Color(0.2f, 0.2f, 0.2f), new Color(0.4f, 0.2f, 0.2f));
+
+										var img = UIManager.GenerateUIImage("image", editButtonObject.transform);
+										var imgObject = (GameObject)img["GameObject"];
+										imgObject.transform.localScale = Vector3.one;
+
+										((Image)img["Image"]).color = offWhite;
+
+										UIManager.SetRectTransform((RectTransform)img["RectTransform"], Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var image = (Image)img["Image"];
+										if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
+											UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
+									}
 								}
 							}
 
@@ -2087,10 +2127,10 @@ namespace PageCreator.Functions
 									{
 										if (!loadingEditor && currentElementSelection != null)
 										{
-											Debug.LogFormat("{0}Setting Interface Branch Name: {1}", PagePlugin.className, _val);
+											Debug.LogFormat("{0}Setting Interface Branch {1}: {2}", PagePlugin.className, currentElementSelection.settings.ElementAt(iTmp).Key, _val);
 
-											var key = currentElementSelection.settings.ElementAt(i).Key;
-											var value = currentElementSelection.settings.ElementAt(i).Value;
+											var key = currentElementSelection.settings.ElementAt(iTmp).Key;
+											var value = currentElementSelection.settings.ElementAt(iTmp).Value;
 
 											currentElementSelection.settings.Remove(key);
 											if (!currentElementSelection.settings.ContainsKey(_val))
@@ -2124,15 +2164,58 @@ namespace PageCreator.Functions
 									{
 										if (!loadingEditor && currentElementSelection != null)
 										{
-											Debug.LogFormat("{0}Setting Interface Branch Name: {1}", PagePlugin.className, _val);
+											Debug.LogFormat("{0}Setting Interface Branch {1}: {2}", PagePlugin.className, currentElementSelection.settings.ElementAt(iTmp).Key, _val);
 
-											var keyAt = currentElementSelection.settings.ElementAt(i).Key;
+											var keyAt = currentElementSelection.settings.ElementAt(iTmp).Key;
 
 											currentElementSelection.settings[keyAt] = _val;
 
 											//currentElementSelection.data[iTmp] = _val;
 										}
 									});
+
+									// Delete
+									{
+										var editButton = UIManager.GenerateUIButton("delete", times.transform);
+										var editButtonObject = (GameObject)editButton["GameObject"];
+										editButtonObject.transform.localScale = Vector3.one;
+
+										var lay = editButtonObject.AddComponent<LayoutElement>();
+										lay.preferredWidth = 32f;
+										lay.ignoreLayout = true;
+
+										((Image)editButton["Image"]).color = new Color(0.934f, 0.4196f, 0.5321f, 1f);
+
+										UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(190f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var editButtonFunc = (Button)editButton["Button"];
+										editButtonFunc.onClick.AddListener(delegate ()
+										{
+											if (!loadingEditor && currentElementSelection != null)
+											{
+												Debug.LogFormat("{0}Deleting Interface Branch Element {1}", PagePlugin.className, currentElementSelection.settings.ElementAt(iTmp).Key);
+
+												var key = currentElementSelection.settings.ElementAt(iTmp).Key;
+
+												currentElementSelection.settings.Remove(key);
+
+												Select(selectionType);
+											}
+										});
+										//editButtonFunc.colors = UIManager.SetColorBlock(editButtonFunc.colors, new Color(0.2f, 0.2f, 0.2f), new Color(0.4008f, 0.4008f, 0.4008f), new Color(0.4608f, 0.4608f, 0.4608f), new Color(0.2f, 0.2f, 0.2f), new Color(0.4f, 0.2f, 0.2f));
+
+										var img = UIManager.GenerateUIImage("image", editButtonObject.transform);
+										var imgObject = (GameObject)img["GameObject"];
+										imgObject.transform.localScale = Vector3.one;
+
+										((Image)img["Image"]).color = offWhite;
+
+										UIManager.SetRectTransform((RectTransform)img["RectTransform"], Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var image = (Image)img["Image"];
+										if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
+											UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
+									}
 								}
 							}
 
@@ -2236,6 +2319,47 @@ namespace PageCreator.Functions
 											//currentElementSelection.data[iTmp] = _val;
 										}
 									});
+
+									// Delete
+									{
+										var editButton = UIManager.GenerateUIButton("delete", times.transform);
+										var editButtonObject = (GameObject)editButton["GameObject"];
+										editButtonObject.transform.localScale = Vector3.one;
+
+										var lay = editButtonObject.AddComponent<LayoutElement>();
+										lay.preferredWidth = 32f;
+										lay.ignoreLayout = true;
+
+										((Image)editButton["Image"]).color = new Color(0.934f, 0.4196f, 0.5321f, 1f);
+
+										UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(190f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var editButtonFunc = (Button)editButton["Button"];
+										editButtonFunc.onClick.AddListener(delegate ()
+										{
+											if (!loadingEditor && currentQuickElementSelection != null)
+											{
+												Debug.LogFormat("{0}Deleting QuickElement Keyframe {1}", PagePlugin.className, iTmp);
+
+												currentQuickElementSelection.keyframes.RemoveAt(iTmp);
+
+												Select(selectionType);
+											}
+										});
+										//editButtonFunc.colors = UIManager.SetColorBlock(editButtonFunc.colors, new Color(0.2f, 0.2f, 0.2f), new Color(0.4008f, 0.4008f, 0.4008f), new Color(0.4608f, 0.4608f, 0.4608f), new Color(0.2f, 0.2f, 0.2f), new Color(0.4f, 0.2f, 0.2f));
+
+										var img = UIManager.GenerateUIImage("image", editButtonObject.transform);
+										var imgObject = (GameObject)img["GameObject"];
+										imgObject.transform.localScale = Vector3.one;
+
+										((Image)img["Image"]).color = offWhite;
+
+										UIManager.SetRectTransform((RectTransform)img["RectTransform"], Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var image = (Image)img["Image"];
+										if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
+											UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
+									}
 								}
 							}
 
@@ -2282,12 +2406,49 @@ namespace PageCreator.Functions
 											Debug.LogFormat("{0}Setting Interface Branch Name: {1}", PagePlugin.className, _val);
 
 											currentQuickElementSelection.effects[iTmp].name = _val;
-
-											//Select(selectionType);
-
-											//currentElementSelection.data[iTmp] = _val;
 										}
 									});
+
+									// Delete
+									{
+										var editButton = UIManager.GenerateUIButton("delete", times.transform);
+										var editButtonObject = (GameObject)editButton["GameObject"];
+										editButtonObject.transform.localScale = Vector3.one;
+
+										var lay = editButtonObject.AddComponent<LayoutElement>();
+										lay.preferredWidth = 32f;
+										lay.ignoreLayout = true;
+
+										((Image)editButton["Image"]).color = new Color(0.934f, 0.4196f, 0.5321f, 1f);
+
+										UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(190f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var editButtonFunc = (Button)editButton["Button"];
+										editButtonFunc.onClick.AddListener(delegate ()
+										{
+											if (!loadingEditor && currentQuickElementSelection != null)
+											{
+												Debug.LogFormat("{0}Deleting QuickElement Effect {1}", PagePlugin.className, iTmp);
+
+												currentQuickElementSelection.effects.RemoveAt(iTmp);
+
+												Select(selectionType);
+											}
+										});
+										//editButtonFunc.colors = UIManager.SetColorBlock(editButtonFunc.colors, new Color(0.2f, 0.2f, 0.2f), new Color(0.4008f, 0.4008f, 0.4008f), new Color(0.4608f, 0.4608f, 0.4608f), new Color(0.2f, 0.2f, 0.2f), new Color(0.4f, 0.2f, 0.2f));
+
+										var img = UIManager.GenerateUIImage("image", editButtonObject.transform);
+										var imgObject = (GameObject)img["GameObject"];
+										imgObject.transform.localScale = Vector3.one;
+
+										((Image)img["Image"]).color = offWhite;
+
+										UIManager.SetRectTransform((RectTransform)img["RectTransform"], Vector2.zero, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
+
+										var image = (Image)img["Image"];
+										if (RTFile.FileExists(RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png"))
+											UIManager.GetImage(image, RTFile.ApplicationDirectory + "BepInEx/plugins/Assets/editor_gui_delete.png");
+									}
 								}
 							}
 
