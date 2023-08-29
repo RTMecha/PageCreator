@@ -714,6 +714,8 @@ namespace PageCreator.Patchers
 										else
 											PagePlugin.prevBranch = __instance.currentBranch;
 
+										PagePlugin.prevScene = __instance.gameObject.scene.name;
+
 										Debug.LogFormat("{0}Setting ArcadeQueue...", PagePlugin.className);
 										SaveManager.ArcadeLevel arcadeLevel = new SaveManager.ArcadeLevel("", FileManager.inst.LoadJSONFileRaw(steamItem.folder + "/level.lsb"), steamItem.metaData, clip);
 										arcadeLevel.AudioFileStr = steamItem.folder + "/level.ogg";
@@ -896,7 +898,7 @@ namespace PageCreator.Patchers
 						}
 						else
 						{
-							PagePlugin.inst.StartCoroutine(PagePlugin.ReturnToMenu(__instance));
+							PagePlugin.ReturnToMenu(__instance);
 						}
 						break;
 					}

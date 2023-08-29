@@ -22,7 +22,7 @@ using PageCreator.Patchers;
 
 namespace PageCreator
 {
-    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.0")]
+    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.1")]
     public class PagePlugin : BaseUnityPlugin
     {
         // Updates:
@@ -51,6 +51,7 @@ namespace PageCreator
 
         public static ConfigEntry<KeyCode> ReloadMainMenu { get; set; }
 
+        public static string prevScene = "Main Menu";
         public static string prevBranch;
         public static string prevInterface = "beatmaps/menus/main/menu.lsm";
         public static bool fromPageLevel = false;
@@ -401,16 +402,28 @@ namespace PageCreator
                 else if (__instance.gameObject.scene.name == "Main Menu" && (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm") || RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm")))
                 {
                     if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm"))
+                    {
                         text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/main.lsm");
+                        prevInterface = "beatmaps/menus/main.lsm";
+                    }
                     else if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm"))
+                    {
                         text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/main/menu.lsm");
+                        prevInterface = "beatmaps/menus/main/menu.lsm";
+                    }
                 }
                 else if (__instance.gameObject.scene.name == "Game" && (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm") || RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm")))
                 {
                     if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm"))
+                    {
                         text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/pause.lsm");
+                        prevInterface = "beatmaps/menus/pause.lsm";
+                    }
                     else if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm"))
+                    {
                         text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/pause/menu.lsm");
+                        prevInterface = "beatmaps/menus/pause/menu.lsm";
+                    }
                 }
                 else
                 {
@@ -427,20 +440,19 @@ namespace PageCreator
             return false;
         }
 
-        public static IEnumerator ReturnToMenu(InterfaceController __instance)
+        public static void ReturnToMenu(InterfaceController __instance)
         {
             DOTween.Clear();
             DataManager.inst.gameData = null;
             DataManager.inst.gameData = new DataManager.GameData();
             InputDataManager.inst.SetAllControllerRumble(0f);
-            SceneManager.inst.LoadScene("Main Menu");
+            SceneManager.inst.LoadScene(prevScene);
 
             if (!string.IsNullOrEmpty(prevBranch))
             {
                 InterfaceControllerPatch.LoadInterface(__instance, prevInterface, false);
                 __instance.SwitchBranch(prevBranch);
             }
-            yield break;
         }
     }
 }
