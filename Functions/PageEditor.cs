@@ -1491,6 +1491,8 @@ namespace PageCreator.Functions
 						var editButtonObject = (GameObject)editButton["GameObject"];
 						editButtonObject.transform.localScale = Vector3.one;
 
+						((Image)editButton["Image"]).color = new Color(0.12f, 0.12f, 0.12f, 1f);
+
 						UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(-45f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
 
 						var editButtonFunc = (Button)editButton["Button"];
@@ -1617,6 +1619,8 @@ namespace PageCreator.Functions
 									var editButton = UIManager.GenerateUIButton("edit", baseBranchButtonObject.transform);
 									var editButtonObject = (GameObject)editButton["GameObject"];
 									editButtonObject.transform.localScale = Vector3.one;
+
+									((Image)editButton["Image"]).color = new Color(0.12f, 0.12f, 0.12f, 1f);
 
 									UIManager.SetRectTransform((RectTransform)editButton["RectTransform"], new Vector2(-45f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(28f, 28f));
 
