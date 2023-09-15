@@ -21,6 +21,7 @@ using SimpleJSON;
 using RTFunctions.Functions;
 using RTFunctions.Functions.IO;
 using RTFunctions.Functions.Managers;
+using RTFunctions.Functions.Managers.Networking;
 
 using PageCreator.Functions;
 
@@ -787,6 +788,22 @@ namespace PageCreator.Patchers
 						}
 						break;
 					}
+				case "playsoundonline":
+                    {
+						try
+						{
+							if (data[1].ToLower().Substring(data[1].ToLower().Length - 4, 4) == ".ogg")
+								__instance.StartCoroutine(AlephNetworkManager.DownloadAudioClip(data[1], AudioType.OGGVORBIS, delegate (AudioClip audioClip)
+								{
+									AudioManager.inst.PlaySound(audioClip);
+								}));
+						}
+						catch
+						{
+
+						}
+						break;
+					}
 				case "playmusic":
 					{
 						if (!RTFile.FileExists(RTFile.ApplicationDirectory + data[1]))
@@ -1443,6 +1460,34 @@ namespace PageCreator.Patchers
 						yield return __instance.StartCoroutine(handleEvent(__instance, _element.branch, datum));
 					}
 					break;
+				case ElementType.Media:
+                    {
+						var gameObject = new GameObject("Media");
+						gameObject.transform.SetParent(__instance.MainPanel);
+						gameObject.transform.localScale = Vector3.one;
+
+						var gameObjectRT = gameObject.AddComponent<RectTransform>();
+						gameObjectRT.anchoredPosition = Vector3.zero;
+
+						var gameObjectImage = gameObject.AddComponent<Image>();
+
+						if (_element.data.Count > 2 && RTFile.FileExists(RTFile.ApplicationDirectory + _element) && int.TryParse(_element.data[1], out int sizeX) && int.TryParse(_element.data[2], out int sizeY))
+                        {
+							__instance.StartCoroutine(RTSpriteManager.LoadImageSprite(RTFile.ApplicationDirectory + _element, new Vector2Int(sizeX, sizeY), callback: delegate (Sprite x)
+							{
+								gameObjectImage.sprite = x;
+							}));
+                        }
+						else if (_element.data.Count > 0)
+                        {
+							__instance.StartCoroutine(AlephNetworkManager.DownloadImageTexture(_element.data[0], delegate (Texture2D x)
+							{
+								gameObjectImage.sprite = RTSpriteManager.CreateSprite(x);
+							}));
+                        }
+
+						break;
+                    }
 			}
 		}
 
@@ -1549,44 +1594,20 @@ namespace PageCreator.Patchers
 				__instance.SwitchBranch(__instance.interfaceSettings.initialBranch);
 		}
 
-		public static BranchType convertInterfaceBranchToEnum(InterfaceController __instance, string _type)
-        {
-			return (BranchType)__instance.GetType().GetMethod("convertInterfaceBranchToEnum", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
-        }
+		public static BranchType convertInterfaceBranchToEnum(InterfaceController __instance, string _type) => (BranchType)__instance.GetType().GetMethod("convertInterfaceBranchToEnum", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
 		
-		public static ElementType convertInterfaceElementToEnum(InterfaceController __instance, string _type)
-        {
-			return (ElementType)__instance.GetType().GetMethod("convertInterfaceElementToEnum", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
-        }
+		public static ElementType convertInterfaceElementToEnum(InterfaceController __instance, string _type) => (ElementType)__instance.GetType().GetMethod("convertInterfaceElementToEnum", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
 
-		public static string RunTextTransformations(InterfaceController __instance, string dataText, int childCount)
-        {
-			return (string)__instance.GetType().GetMethod("RunTextTransformations", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { dataText, childCount });
-        }
+		public static string RunTextTransformations(InterfaceController __instance, string dataText, int childCount) => (string)__instance.GetType().GetMethod("RunTextTransformations", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { dataText, childCount });
 
-		public static IEnumerator ScrollBottom(InterfaceController __instance)
-		{
-			return (IEnumerator)__instance.GetType().GetMethod("ScrollBottom", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { });
-		}
+		public static IEnumerator ScrollBottom(InterfaceController __instance) => (IEnumerator)__instance.GetType().GetMethod("ScrollBottom", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { });
 
-		public static ButtonType ConvertStringToButtonType(InterfaceController __instance, string _type)
-		{
-			return (ButtonType)__instance.GetType().GetMethod("ConvertStringToButtonType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
-		}
+		public static ButtonType ConvertStringToButtonType(InterfaceController __instance, string _type) => (ButtonType)__instance.GetType().GetMethod("ConvertStringToButtonType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type });
 
-		public static EventTrigger.Entry CreateButtonHoverTrigger(InterfaceController __instance, EventTriggerType _type, GameObject _element)
-		{
-			return (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonHoverTrigger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, _element });
-		}
+		public static EventTrigger.Entry CreateButtonHoverTrigger(InterfaceController __instance, EventTriggerType _type, GameObject _element) => (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonHoverTrigger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, _element });
 
-		public static EventTrigger.Entry CreateButtonTriggerForEvent(InterfaceController __instance, EventTriggerType _type, string _branch, string _eventData)
-		{
-			return (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonTriggerForEvent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, _branch, _eventData });
-		}
+		public static EventTrigger.Entry CreateButtonTriggerForEvent(InterfaceController __instance, EventTriggerType _type, string _branch, string _eventData) => (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonTriggerForEvent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, _branch, _eventData });
 
-		public static EventTrigger.Entry CreateButtonTrigger(InterfaceController __instance, EventTriggerType _type, GameObject element, string _link)
-		{
-			return (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonTrigger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, element, _link });
-		}
+		public static EventTrigger.Entry CreateButtonTrigger(InterfaceController __instance, EventTriggerType _type, GameObject element, string _link) => (EventTrigger.Entry)__instance.GetType().GetMethod("CreateButtonTrigger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(__instance, new object[] { _type, element, _link });
 	}
 }
