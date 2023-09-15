@@ -53,7 +53,7 @@ namespace PageCreator
 
         public static string prevScene = "Main Menu";
         public static string prevBranch;
-        public static string prevInterface = "beatmaps/menus/main/menu.lsm";
+        public static string prevInterface = "beatmaps/menus/menu.lsm";
         public static bool fromPageLevel = false;
 
         public enum LoadMode
@@ -70,7 +70,7 @@ namespace PageCreator
 
         public static int randomIndex = -1;
 
-        private void Awake()
+        void Awake()
         {
             // Plugin startup logic
             Logger.LogInfo("Plugin Page Creator is loaded!");
@@ -105,7 +105,7 @@ namespace PageCreator
             PageEditor.Init();
         }
 
-        private static void UpdateSettings(object sender, EventArgs e)
+        static void UpdateSettings(object sender, EventArgs e)
         {
             if (EditorManager.inst == null && ArcadeManager.inst != null && ArcadeManager.inst.ic != null && (prevPlayCustomMusic != PlayCustomMusic.Value || prevMusicLoadMode != MusicLoadMode.Value || prevMusicIndex != MusicIndex.Value))
             {
@@ -219,7 +219,7 @@ namespace PageCreator
 
         [HarmonyPatch(typeof(DataManager), "Start")]
         [HarmonyPostfix]
-        public static void DataStart()
+        static void DataStart()
         {
             if (RTFile.FileExists(RTFile.ApplicationDirectory + "settings/menu.lss"))
             {
@@ -380,7 +380,7 @@ namespace PageCreator
 
         [HarmonyPatch(typeof(InterfaceLoader), "Start")]
         [HarmonyPrefix]
-        private static bool InterfaceLoaderPrefix(InterfaceLoader __instance)
+        static bool InterfaceLoaderPrefix(InterfaceLoader __instance)
         {
             string text = "";
             if (string.IsNullOrEmpty(__instance.file))
@@ -425,6 +425,14 @@ namespace PageCreator
                         prevInterface = "beatmaps/menus/pause/menu.lsm";
                     }
                 }
+                else if (__instance.gameObject.scene.name == "Interface" && RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/story_mode.lsm"))
+                {
+                    if (RTFile.FileExists(RTFile.ApplicationDirectory + "beatmaps/menus/story_mode.lsm"))
+                    {
+                        text = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + "beatmaps/menus/story_mode.lsm");
+                        prevInterface = "beatmaps/menus/story_mode.lsm";
+                    }
+                }
                 else
                 {
                     text = (Resources.Load("terminal/" + __instance.location + "/" + __instance.file) as TextAsset).text;
@@ -452,6 +460,17 @@ namespace PageCreator
             {
                 InterfaceControllerPatch.LoadInterface(__instance, prevInterface, false);
                 __instance.SwitchBranch(prevBranch);
+            }
+        }
+
+        [HarmonyPatch(typeof(ArcadeManager), "Update")]
+        [HarmonyPostfix]
+        static void ArcadeManagerUpdatePostfix(ArcadeManager __instance)
+        {
+            if (Input.GetKeyDown(KeyCode.G) && __instance.ic != null && __instance.ic.buttons != null && __instance.ic.buttons.Count > 0)
+            {
+                __instance.ic.currHoveredButton = __instance.ic.buttons[0];
+                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(ArcadeManager.inst.ic.buttons[0]);
             }
         }
     }
