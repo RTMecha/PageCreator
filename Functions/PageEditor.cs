@@ -132,6 +132,13 @@ namespace PageCreator.Functions
             else if (inst != this)
                 Destroy(gameObject);
 
+			if (ModCompatibility.mods.ContainsKey("PageCreator"))
+            {
+				if (!ModCompatibility.mods["PageCreator"].components.ContainsKey("PageEditor"))
+					ModCompatibility.mods["PageCreator"].components.Add("PageEditor", new ModCompatibility.Mod(this, GetType()));
+				else ModCompatibility.mods["PageCreator"].components["PageEditor"] = new ModCompatibility.Mod(this, GetType());
+			}
+
 			StartCoroutine(CreateUI());
         }
 
