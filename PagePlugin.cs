@@ -22,7 +22,7 @@ using PageCreator.Patchers;
 
 namespace PageCreator
 {
-    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.1")]
+    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.2")]
     public class PagePlugin : BaseUnityPlugin
     {
         // Updates:
@@ -90,6 +90,15 @@ namespace PageCreator
 
             harmony.PatchAll(typeof(PagePlugin));
             harmony.PatchAll(typeof(InterfaceControllerPatch));
+
+            if (!ModCompatibility.mods.ContainsKey("PageCreator"))
+            {
+                var mod = new ModCompatibility.Mod(this, GetType());
+
+                mod.methods.Add("SetupPageEditor", GetType().GetMethod("SetupPageEditor"));
+
+                ModCompatibility.mods.Add("PageCreator", mod);
+            }
         }
 
         void Update()
