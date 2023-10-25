@@ -685,18 +685,21 @@ namespace PageCreator.Patchers
 						if (!data[1].Contains("level.lsb") && RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/level.lsb"))
 						{
 							Debug.LogFormat("{0}Loading level from {1}", PagePlugin.className, data[1]);
-							ulong range = (ulong)UnityEngine.Random.Range(0, int.MaxValue);
-
-							PublishedFileId_t publishedFileId_T = new PublishedFileId_t(range);
-
-							SteamWorkshop.SteamItem steamItem = new SteamWorkshop.SteamItem(publishedFileId_T);
 
 							if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb"))
 							{
 								Debug.LogFormat("{0}Loading metadata...", PagePlugin.className);
 								string metadataStr = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb");
 
-								steamItem.metaData = DataManager.inst.ParseMetadata(metadataStr);
+								var metadata = DataManager.inst.ParseMetadata(metadataStr);
+
+								ulong range = (ulong)metadata.beatmap.workshop_id;
+
+								PublishedFileId_t publishedFileId_T = new PublishedFileId_t(range);
+
+								SteamWorkshop.SteamItem steamItem = new SteamWorkshop.SteamItem(publishedFileId_T);
+
+								steamItem.metaData = metadata;
 
 								Debug.LogFormat("{0}Setting steamItem...", PagePlugin.className);
 								steamItem.itemID = (int)range;
@@ -733,6 +736,73 @@ namespace PageCreator.Patchers
 
 						break;
 					}
+				case "loadlevelonline":
+					{
+						try
+                        {
+							__instance.StartCoroutine(AlephNetworkManager.DownloadJSONFile(data[1], delegate (string x)
+							{
+
+							}));
+                        }
+						catch
+                        {
+
+                        }
+
+						if (!data[1].Contains("level.lsb") && RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/level.lsb"))
+						{
+							Debug.LogFormat("{0}Loading level from {1}", PagePlugin.className, data[1]);
+							if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb"))
+							{
+								Debug.LogFormat("{0}Loading metadata...", PagePlugin.className);
+								string metadataStr = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb");
+
+								var metadata = DataManager.inst.ParseMetadata(metadataStr);
+
+								ulong range = (ulong)metadata.beatmap.workshop_id;
+
+								PublishedFileId_t publishedFileId_T = new PublishedFileId_t(range);
+
+								SteamWorkshop.SteamItem steamItem = new SteamWorkshop.SteamItem(publishedFileId_T);
+
+								steamItem.metaData = metadata;
+
+								Debug.LogFormat("{0}Setting steamItem...", PagePlugin.className);
+								steamItem.itemID = (int)range;
+								steamItem.id = publishedFileId_T;
+								steamItem.size = metadataStr.Length;
+								steamItem.folder = RTFile.ApplicationDirectory + data[1];
+								steamItem.musicID = Path.GetFileName(steamItem.folder);
+
+								if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/level.ogg"))
+								{
+									__instance.StartCoroutine(FileManager.inst.LoadMusicFileRaw(steamItem.folder + "/level.ogg", true, delegate (AudioClip clip)
+									{
+										PagePlugin.fromPageLevel = true;
+										if (data.Length > 2)
+											PagePlugin.prevBranch = data[2];
+										else
+											PagePlugin.prevBranch = __instance.currentBranch;
+
+										PagePlugin.prevScene = __instance.gameObject.scene.name;
+
+										Debug.LogFormat("{0}Setting ArcadeQueue...", PagePlugin.className);
+										SaveManager.ArcadeLevel arcadeLevel = new SaveManager.ArcadeLevel("", FileManager.inst.LoadJSONFileRaw(steamItem.folder + "/level.lsb"), steamItem.metaData, clip);
+										arcadeLevel.AudioFileStr = steamItem.folder + "/level.ogg";
+
+										SaveManager.inst.ArcadeQueue = arcadeLevel;
+
+										DataManager.inst.UpdateSettingBool("IsArcade", true);
+
+										SceneManager.inst.LoadScene("Game");
+									}));
+								}
+							}
+						}
+
+						break;
+                    }
 				case "deleteline":
 					if (data.Length > 2)
 					{
@@ -902,11 +972,22 @@ namespace PageCreator.Patchers
 						break;
 					}
 				case "unpauselevel":
-					if (GameManager.inst != null)
+					if (GameManager.inst)
 					{
 						GameManager.inst.UnPause();
 					}
 					break;
+				case "restartlevel":
+                    {
+						if (GameManager.inst)
+                        {
+							AudioManager.inst.SetMusicTime(0f);
+							GameManager.inst.hits.Clear();
+							GameManager.inst.deaths.Clear();
+							GameManager.inst.UnPause();
+                        }
+						break;
+                    }
 				case "quittoarcade":
 					{
 						if (GameManager.inst != null && !PagePlugin.fromPageLevel)
