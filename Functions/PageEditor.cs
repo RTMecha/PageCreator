@@ -2894,5 +2894,15 @@ namespace PageCreator.Functions
 				public string returnBranch = "";
 			}
         }
+
+		public class InterfaceTheme
+        {
+			public string name;
+			public Color bg;
+			public Color text;
+			public Color highlight;
+			public Color texthighlight;
+			public Color buttonbg;
+        }
     }
 }
