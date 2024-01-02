@@ -14,6 +14,7 @@ using DG.Tweening;
 using LSFunctions;
 
 using RTFunctions.Functions;
+using RTFunctions.Functions.Data;
 using RTFunctions.Functions.IO;
 using RTFunctions.Functions.Managers;
 
@@ -22,7 +23,7 @@ using PageCreator.Patchers;
 
 namespace PageCreator
 {
-    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.2")]
+    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.3")]
     public class PagePlugin : BaseUnityPlugin
     {
         // Updates:
@@ -95,7 +96,7 @@ namespace PageCreator
             {
                 var mod = new ModCompatibility.Mod(this, GetType());
 
-                mod.methods.Add("SetupPageEditor", GetType().GetMethod("SetupPageEditor"));
+                mod.Methods.Add("SetupPageEditor", (Action)SetupPageEditor);
 
                 ModCompatibility.mods.Add("PageCreator", mod);
             }
@@ -457,18 +458,17 @@ namespace PageCreator
             return false;
         }
 
-        public static void ReturnToMenu(InterfaceController __instance)
+        public static IEnumerator ReturnToMenu()
         {
-            DOTween.Clear();
-            DataManager.inst.gameData = null;
-            DataManager.inst.gameData = new DataManager.GameData();
-            InputDataManager.inst.SetAllControllerRumble(0f);
             SceneManager.inst.LoadScene(prevScene);
+
+            while (!ArcadeManager.inst.ic)
+                yield return null;
 
             if (!string.IsNullOrEmpty(prevBranch))
             {
-                InterfaceControllerPatch.LoadInterface(__instance, prevInterface, false);
-                __instance.SwitchBranch(prevBranch);
+                InterfaceControllerPatch.LoadInterface(ArcadeManager.inst.ic, prevInterface, false);
+                ArcadeManager.inst.ic.SwitchBranch(prevBranch);
             }
         }
 
