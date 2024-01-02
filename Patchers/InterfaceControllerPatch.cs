@@ -80,15 +80,19 @@ namespace PageCreator.Patchers
 			}
 
 			if (GameManager.inst == null)
+			{
 				PagePlugin.PlayMusic(__instance);
+
+				var postprocess = Camera.main.gameObject.AddComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>();
+
+				var menuEffects = new GameObject("MenuEffects");
+				menuEffects.layer = 5;
+				menuEffects.AddComponent<MenuEffects>();
+			}
 
 			//Destroy(GameObject.Find("EventSystem").GetComponent<InControlInputModule>());
 			//Destroy(GameObject.Find("EventSystem").GetComponent<BaseInput>());
 			//GameObject.Find("EventSystem").AddComponent<StandaloneInputModule>();
-
-			var menuEffects = new GameObject("MenuEffects");
-			menuEffects.layer = 5;
-			menuEffects.AddComponent<MenuEffects>();
 
 			return false;
 		}
@@ -686,52 +690,19 @@ namespace PageCreator.Patchers
 						{
 							Debug.LogFormat("{0}Loading level from {1}", PagePlugin.className, data[1]);
 
-							if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb"))
+							if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/level.lsb"))
 							{
-								Debug.LogFormat("{0}Loading metadata...", PagePlugin.className);
-								string metadataStr = FileManager.inst.LoadJSONFileRaw(RTFile.ApplicationDirectory + data[1] + "/metadata.lsb");
+								PagePlugin.prevBranch = data.Length > 2 ? data[2] : __instance.interfaceBranches.Find(x => x.name == __instance.currentBranch) != null ? __instance.interfaceBranches.Find(x => x.name == __instance.currentBranch).BackBranch : __instance.currentBranch;
 
-								var metadata = DataManager.inst.ParseMetadata(metadataStr);
+								PagePlugin.prevScene = __instance.gameObject.scene.name;
 
-								ulong range = (ulong)metadata.beatmap.workshop_id;
-
-								PublishedFileId_t publishedFileId_T = new PublishedFileId_t(range);
-
-								SteamWorkshop.SteamItem steamItem = new SteamWorkshop.SteamItem(publishedFileId_T);
-
-								steamItem.metaData = metadata;
-
-								Debug.LogFormat("{0}Setting steamItem...", PagePlugin.className);
-								steamItem.itemID = (int)range;
-								steamItem.id = publishedFileId_T;
-								steamItem.size = metadataStr.Length;
-								steamItem.folder = RTFile.ApplicationDirectory + data[1];
-								steamItem.musicID = Path.GetFileName(steamItem.folder);
-
-								if (RTFile.FileExists(RTFile.ApplicationDirectory + data[1] + "/level.ogg"))
+								LevelManager.OnLevelEnd = delegate ()
 								{
-									__instance.StartCoroutine(FileManager.inst.LoadMusicFileRaw(steamItem.folder + "/level.ogg", true, delegate (AudioClip clip)
-									{
-										PagePlugin.fromPageLevel = true;
-										if (data.Length > 2)
-											PagePlugin.prevBranch = data[2];
-										else
-											PagePlugin.prevBranch = __instance.currentBranch;
+									PagePlugin.inst.StartCoroutine(PagePlugin.ReturnToMenu());
+								};
 
-										PagePlugin.prevScene = __instance.gameObject.scene.name;
-
-										Debug.LogFormat("{0}Setting ArcadeQueue...", PagePlugin.className);
-										SaveManager.ArcadeLevel arcadeLevel = new SaveManager.ArcadeLevel("", FileManager.inst.LoadJSONFileRaw(steamItem.folder + "/level.lsb"), steamItem.metaData, clip);
-										arcadeLevel.AudioFileStr = steamItem.folder + "/level.ogg";
-
-										SaveManager.inst.ArcadeQueue = arcadeLevel;
-
-										DataManager.inst.UpdateSettingBool("IsArcade", true);
-
-										SceneManager.inst.LoadScene("Game");
-									}));
-								}
-							}
+								LevelManager.Load(RTFile.ApplicationDirectory + data[1] + "/level.lsb", false);
+                            }
 						}
 
 						break;
@@ -922,7 +893,7 @@ namespace PageCreator.Patchers
 					}
 				case "openlink":
 					{
-						if (data[1].Contains("https://www.youtube.com") || data[1].Contains("https://www.discord.com/") || data[1].Contains("https://www.newgrounds.com/"))
+						if (data[1].Contains("https://www.youtube.com") || data[1].Contains("https://www.discord.com/") || data[1].Contains(".newgrounds.com/"))
 							Application.OpenURL(data[1]);
 						break;
 					}
@@ -990,13 +961,9 @@ namespace PageCreator.Patchers
                     }
 				case "quittoarcade":
 					{
-						if (GameManager.inst != null && !PagePlugin.fromPageLevel)
+						if (GameManager.inst != null)
 						{
 							GameManager.inst.QuitToArcade();
-						}
-						else
-						{
-							PagePlugin.ReturnToMenu(__instance);
 						}
 						break;
 					}
@@ -1552,20 +1519,11 @@ namespace PageCreator.Patchers
 
 						var gameObjectImage = gameObject.AddComponent<Image>();
 
-						if (_element.data.Count > 2 && RTFile.FileExists(RTFile.ApplicationDirectory + _element) && int.TryParse(_element.data[1], out int sizeX) && int.TryParse(_element.data[2], out int sizeY))
-                        {
-							__instance.StartCoroutine(RTSpriteManager.LoadImageSprite(RTFile.ApplicationDirectory + _element, new Vector2Int(sizeX, sizeY), callback: delegate (Sprite x)
-							{
-								gameObjectImage.sprite = x;
-							}));
-                        }
-						else if (_element.data.Count > 0)
-                        {
-							__instance.StartCoroutine(AlephNetworkManager.DownloadImageTexture(_element.data[0], delegate (Texture2D x)
-							{
-								gameObjectImage.sprite = RTSpriteManager.CreateSprite(x);
-							}));
-                        }
+						if (_element.data.Count > 2 && float.TryParse(_element.data[1], out float sizeX) && float.TryParse(_element.data[2], out float sizeY))
+							gameObjectRT.sizeDelta = new Vector2(sizeX, sizeY);
+						
+						if (RTFile.FileExists(RTFile.ApplicationDirectory + _element))
+							gameObjectImage.sprite = SpriteManager.LoadSprite(RTFile.ApplicationDirectory + _element);
 
 						break;
                     }
