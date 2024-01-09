@@ -83,18 +83,20 @@ namespace PageCreator.Patchers
 			{
 				PagePlugin.PlayMusic(__instance);
 
-				var postprocess = Camera.main.gameObject.AddComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>();
+                //Camera.main.gameObject.layer = 5;
 
-				var menuEffects = new GameObject("MenuEffects");
-				menuEffects.layer = 5;
-				menuEffects.AddComponent<MenuEffects>();
-			}
+                //var postprocess = Camera.main.gameObject.AddComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>();
 
-			//Destroy(GameObject.Find("EventSystem").GetComponent<InControlInputModule>());
-			//Destroy(GameObject.Find("EventSystem").GetComponent<BaseInput>());
-			//GameObject.Find("EventSystem").AddComponent<StandaloneInputModule>();
+                //var menuEffects = new GameObject("MenuEffects");
+                //menuEffects.layer = 5;
+                //menuEffects.AddComponent<MenuEffects>();
+            }
 
-			return false;
+            //Destroy(GameObject.Find("EventSystem").GetComponent<InControlInputModule>());
+            //Destroy(GameObject.Find("EventSystem").GetComponent<BaseInput>());
+            //GameObject.Find("EventSystem").AddComponent<StandaloneInputModule>();
+
+            return false;
 		}
 
 		[HarmonyPatch("LoadInterface", new Type[] { typeof(string) })]
