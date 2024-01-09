@@ -23,7 +23,7 @@ using PageCreator.Patchers;
 
 namespace PageCreator
 {
-    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.3")]
+    [BepInPlugin("com.mecha.pagecreator", "Page Creator", "2.1.4")]
     public class PagePlugin : BaseUnityPlugin
     {
         // Updates:
